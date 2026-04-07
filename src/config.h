@@ -4,12 +4,16 @@
 #define I2C_SDA 21
 #define I2C_SCL 22
 #define MPU_ADDR 0x68
+#define NRF_ADDR "DRONE"
 
-// --- ESC Pins ---
-#define ESC_FL 13
+// --- ESC Pins --- 
+#define ESC_FL 14
 #define ESC_FR 12
-#define ESC_BL 14
+#define ESC_BL 13
 #define ESC_BR 27
+// --- NRF Pins ---
+#define NRF_CE 5
+#define NRF_CSN 17
 
 // --- Timing (CHANGED) ---
 // Replaced LOOP_DELAY_MS with a fixed frequency target
@@ -33,10 +37,10 @@
 #define KI_YAW 0.02
 #define KD_YAW 1.0
 
-// --- Limits (CHANGED) ---
-#define PWM_MIN 1100
+// --- Limits ---
+#define PWM_MIN 1000
 #define PWM_MAX 2000
-#define BASE_THROTTLE 1350 // Increased to generate actual torque
+#define BASE_THROTTLE 1300 // Increased to generate actual torque
 
 // (NEW) Add an I-term limit to prevent windup on the ground
 #define PID_I_MAX 150.0

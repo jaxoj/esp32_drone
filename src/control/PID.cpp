@@ -9,11 +9,14 @@ PID::PID(float kp, float ki, float kd, float minOut, float maxOut)
 float PID::compute(float setpoint, float measurement, float dt) {
     float error = setpoint - measurement;
 
+    // Calculate and constrain the Integral (Prevents Windup)
     _integral += error * dt;
     _integral = constrain(_integral, _minOut, _maxOut);
 
+    // Calculate Derivative
     float derivative = (error - _previousError) / dt;
 
+    // Calculate Final Output
     float output = (_kp * error) + (_ki * _integral) + (_kd * derivative);
     output = constrain(output, _minOut, _maxOut);
 

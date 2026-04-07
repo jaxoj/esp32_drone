@@ -35,8 +35,4 @@ void MotorController::update(int baseThrottle, float roll, float pitch, float ya
     esc2.writeMicroseconds(m2);
     esc3.writeMicroseconds(m3);
     esc4.writeMicroseconds(m4);
-
-    Serial.printf(
-        "Roll:%7.2f  Pitch:%7.2f | M1:%4d M2:%4d M3:%4d M4:%4d\n",
-        roll, pitch, m1, m2, m3, m4);
 }
