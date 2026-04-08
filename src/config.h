@@ -4,6 +4,7 @@
 #define I2C_SDA 21
 #define I2C_SCL 22
 #define MPU_ADDR 0x68
+#define HMC5883L_ADDR 0x0D
 #define NRF_ADDR "DRONE"
 
 // --- ESC Pins --- 
@@ -33,8 +34,8 @@
 #define KI_PITCH 0.01
 #define KD_PITCH 0.05
 
-#define KP_YAW 4.0
-#define KI_YAW 0.02
+#define KP_YAW 2.0
+#define KI_YAW 0.05
 #define KD_YAW 0.05
 
 // --- Limits ---
