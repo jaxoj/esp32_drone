@@ -4,14 +4,13 @@
 #define I2C_SDA 21
 #define I2C_SCL 22
 #define MPU_ADDR 0x68
-#define HMC5883L_ADDR 0x0D
 #define NRF_ADDR "DRONE"
 
 // --- ESC Pins --- 
-#define ESC_FL 27
+#define ESC_FL 13
 #define ESC_FR 12
 #define ESC_BL 14
-#define ESC_BR 13
+#define ESC_BR 27
 // --- NRF Pins ---
 #define NRF_CE 5
 #define NRF_CSN 17

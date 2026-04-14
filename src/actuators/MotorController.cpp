@@ -16,7 +16,7 @@ void MotorController::arm()
     esc2.writeMicroseconds(PWM_MIN);
     esc3.writeMicroseconds(PWM_MIN);
     esc4.writeMicroseconds(PWM_MIN);
-    delay(5000);
+    delay(3000);
 }
 
 void MotorController::update(int baseThrottle, float roll, float pitch, float yaw)
@@ -35,4 +35,7 @@ void MotorController::update(int baseThrottle, float roll, float pitch, float ya
     esc2.writeMicroseconds(m2);
     esc3.writeMicroseconds(m3);
     esc4.writeMicroseconds(m4);
+    // Serial.printf(
+    //     "PWM us: %d %d %d %d\n",
+    //     m1, m2, m3, m4);
 }
