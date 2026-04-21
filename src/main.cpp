@@ -14,9 +14,9 @@ IMU imu;
 MotorController motors;
 
 // PID Tuning for Yaw Rate (This usually needs a higher P than angle)
-PID pidRoll(KP_ROLL, KI_ROLL, KD_ROLL, -PID_I_MAX, PID_I_MAX);
-PID pidPitch(KP_PITCH, KI_PITCH, KD_PITCH, -PID_I_MAX, PID_I_MAX);
-PID pidYaw(KP_YAW, KI_YAW, KD_YAW, -PID_I_MAX, PID_I_MAX);
+PID pidRoll(KP_ROLL, KI_ROLL, KD_ROLL, -PID_I_MAX, PID_I_MAX, FILTER_ALPHA_D);
+PID pidPitch(KP_PITCH, KI_PITCH, KD_PITCH, -PID_I_MAX, PID_I_MAX, FILTER_ALPHA_D);
+PID pidYaw(KP_YAW, KI_YAW, KD_YAW, -PID_I_MAX, PID_I_MAX, FILTER_ALPHA_D);
 
 // --- Task Handles ---
 TaskHandle_t FlightTaskHandle;
@@ -52,8 +52,11 @@ void flightTask(void *pvParameters)
         float yt = sharedData.yawTarget;
         bool isConnected = sharedData.connected;
 
+        // Debug output
+        // Serial.printf("Conn: %d, Thr: %.0f, R: %.1f, P: %.1f, Y: %.1f\n", isConnected, t, imu.getRoll(), imu.getPitch(), imu.getYaw());
+
         // Failsafe logic
-        if (!isConnected || t < 1050)
+        if (!isConnected || t < 1000)
         {
             motors.update(PWM_MIN, 0, 0, 0);
             pidRoll.reset();
@@ -81,12 +84,10 @@ void setup()
 
     nrf.begin();
     imu.begin();
-    imu.calibrate();
     motors.begin();
     motors.arm();
 
-    // Create the Flight Task on Core 1
-    // Priority 24 is very high. Stack size 8192 is plenty for math.
+    
     xTaskCreatePinnedToCore(
         flightTask,
         "FlightLoop",
@@ -95,8 +96,16 @@ void setup()
         24,
         &FlightTaskHandle,
         1);
-
+    
     Serial.println("Flight Task Started on Core 1");
+    Serial.println("Send 'C' via Serial Monitor to calibrate IMU.");
+
+    // Initialize sharedData to prevent garbage values
+    sharedData.throttle = 1000.0f;
+    sharedData.rollTarget = 0.0f;
+    sharedData.pitchTarget = 0.0f;
+    sharedData.yawTarget = 0.0f;
+    sharedData.connected = false;
 }
 
 void loop()
@@ -104,6 +113,27 @@ void loop()
     // --- Task 2: Radio & Telemetry (Core 0 - Default) ---
     // The loop() function on ESP32 runs on Core 1 by default, but we can 
     // use it for the Radio since the Flight Task will preempt it.
+    // --- Listen for Calibration Command ---
+
+    if (Serial.available()) {
+        char cmd = Serial.read();
+        if (cmd == 'c' || cmd == 'C') {
+            Serial.println("Suspending flight loop for calibration...");
+            
+            // 1. Pause the Flight Task to prevent I2C bus collisions
+            vTaskSuspend(FlightTaskHandle);
+            
+            // 2. Ensure motors are forced off before we stop calculating PID
+            motors.update(PWM_MIN, 0, 0, 0); 
+            
+            // 3. Run the 2-second calibration and save to flash
+            imu.calibrate();
+            
+            // 4. Resume the flight loop!
+            vTaskResume(FlightTaskHandle);
+            Serial.println("Flight loop resumed. Ready to fly!");
+        }
+    }
 
     // --- Read Radio ---
     if (nrf.available())

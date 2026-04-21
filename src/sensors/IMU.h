@@ -6,6 +6,7 @@ class IMU
 public:
     void begin();
     void calibrate();
+    void loadCalibration();
     void update(float dt);
     void madgwick9DOF(float gx, float gy, float gz, float ax, float ay, float az, float mx, float my, float mz, float dt);
 

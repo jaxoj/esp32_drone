@@ -1,6 +1,7 @@
 #include "IMU.h"
 #include "../config.h"
 #include <Arduino.h>
+#include <Preferences.h> // <-- ADD THIS
 
 void IMU::begin() {
     // 1. Wake up MPU
@@ -10,31 +11,48 @@ void IMU::begin() {
     Wire.endTransmission(true);
 
     // 2. Enable Hardware Digital Low Pass Filter (DLPF)
-    // Register 0x1A: Configures the LPF. 
-    // Value 0x03 (~42Hz) is the "sweet spot" for drone vibrations.
     Wire.beginTransmission(MPU_ADDR);
     Wire.write(0x1A); 
     Wire.write(0x04); 
     Wire.endTransmission(true);
 
-    // 3. Set Gyro Full Scale Range to +/- 500 deg/s (Optional but recommended)
+    // 3. Set Gyro Full Scale Range to +/- 500 deg/s
     Wire.beginTransmission(MPU_ADDR);
     Wire.write(0x1B);
     Wire.write(0x08); 
     Wire.endTransmission(true);
+
+    // 4. Load saved offsets from Flash memory
+    loadCalibration();
+}
+
+void IMU::loadCalibration() {
+    Preferences prefs;
+    // Open "imu" namespace in read-only mode (true)
+    prefs.begin("imu", true); 
+
+    // Read values, default to 0.0f if the drone has never been calibrated
+    gyroX_offset = prefs.getFloat("gx", 0.0f);
+    gyroY_offset = prefs.getFloat("gy", 0.0f);
+    gyroZ_offset = prefs.getFloat("gz", 0.0f);
+    
+    prefs.end();
+
+    Serial.println("IMU Calibration Loaded:");
+    Serial.printf("X: %.2f | Y: %.2f | Z: %.2f\n", gyroX_offset, gyroY_offset, gyroZ_offset);
 }
 
 void IMU::calibrate() {
-    Serial.println("Calibrating IMU...");
+    Serial.println("Calibrating IMU... DO NOT MOVE DRONE!");
     gyroX_offset = 0; gyroY_offset = 0; gyroZ_offset = 0;
     
-    for (int i = 0; i < 1000; i++) { // Increased to 1000 for better precision
+    for (int i = 0; i < 1000; i++) {
         Wire.beginTransmission(MPU_ADDR);
         Wire.write(0x43);
         Wire.endTransmission(false);
         Wire.requestFrom(MPU_ADDR, 6, true);
 
-        gyroX_offset += (int16_t(Wire.read() << 8 | Wire.read())) / 65.5; // Scale for 500dps
+        gyroX_offset += (int16_t(Wire.read() << 8 | Wire.read())) / 65.5; 
         gyroY_offset += (int16_t(Wire.read() << 8 | Wire.read())) / 65.5;
         gyroZ_offset += (int16_t(Wire.read() << 8 | Wire.read())) / 65.5;
         delay(2);
@@ -43,7 +61,16 @@ void IMU::calibrate() {
     gyroX_offset /= 1000.0;
     gyroY_offset /= 1000.0;
     gyroZ_offset /= 1000.0;
-    Serial.println("IMU Calibrated.");
+
+    // --- NEW: Save to Flash ---
+    Preferences prefs;
+    prefs.begin("imu", false); // Open in Read/Write mode (false)
+    prefs.putFloat("gx", gyroX_offset);
+    prefs.putFloat("gy", gyroY_offset);
+    prefs.putFloat("gz", gyroZ_offset);
+    prefs.end();
+
+    Serial.println("IMU Calibrated and saved to Flash.");
 }
 
 void IMU::update(float dt) {

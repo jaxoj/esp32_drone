@@ -31,6 +31,11 @@ void MotorController::update(int baseThrottle, float roll, float pitch, float ya
     m3 = constrain(m3, PWM_MIN, PWM_MAX);
     m4 = constrain(m4, PWM_MIN, PWM_MAX);
 
+    lastM1 = m1;
+    lastM2 = m2;
+    lastM3 = m3;
+    lastM4 = m4;
+
     esc1.writeMicroseconds(m1);
     esc2.writeMicroseconds(m2);
     esc3.writeMicroseconds(m3);
