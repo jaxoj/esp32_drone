@@ -118,7 +118,7 @@ void IMU::update(float dt) {
     pitch = asin(2.0f * (q0 * q2 - q1 * q3)) * 180.0f / PI;
     yaw = gz; // Keeping Yaw as Rate Control as discussed
 
-    Serial.printf("Roll: %3.1f | Pitch: %3.1f | Yaw: %3.1f\n", roll, pitch, yaw);
+    // Serial.printf("Roll: %3.1f | Pitch: %3.1f | Yaw: %3.1f\n", roll, pitch, yaw);
 }
 
 float IMU::getRoll() { return roll; }

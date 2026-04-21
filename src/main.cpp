@@ -28,7 +28,7 @@ struct ControllData
     bool connected;
 } sharedData;
 
-// --- Task 1: Flight Control (Core 1 - High Priority) ---
+// --- Flight Control (Core 1 - High Priority) ---
 void flightTask(void *pvParameters)
 {
     TickType_t xLastWakeTime = xTaskGetTickCount();
